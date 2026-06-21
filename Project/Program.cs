@@ -1,4 +1,4 @@
-﻿using Gtk;
+using Gtk;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,13 +7,30 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace SimpleCalendarGtk
 {
+    /// <summary>
+    /// Represents a calendar event with a title, description, date, and repeat setting.
+    /// </summary>
     class CalendarEvent
     {
+        /// <summary>The title of the event.</summary>
         public string Title;
+
+        /// <summary>A short description of the event.</summary>
         public string Description;
+
+        /// <summary>The date and time the event occurs.</summary>
         public DateTime Date;
+
+        /// <summary>The repeat interval: "None", "Daily", "Weekly", or "Yearly".</summary>
         public string Repeat;
 
+        /// <summary>
+        /// Creates a new calendar event.
+        /// </summary>
+        /// <param name="title">The event title.</param>
+        /// <param name="desc">A short description.</param>
+        /// <param name="date">The date and time of the event.</param>
+        /// <param name="repeat">How often the event repeats.</param>
         public CalendarEvent(string title, string desc, DateTime date, string repeat)
         {
             Title = title;
@@ -22,6 +39,11 @@ namespace SimpleCalendarGtk
             Repeat = repeat;
         }
 
+        /// <summary>
+        /// Checks whether this event occurs on a given day, taking repeat settings into account.
+        /// </summary>
+        /// <param name="day">The day to check.</param>
+        /// <returns>True if the event occurs on that day, false otherwise.</returns>
         public bool OccursOn(DateTime day)
         {
             if (Repeat == "None") return Date.Date == day.Date;
@@ -33,6 +55,10 @@ namespace SimpleCalendarGtk
         }
     }
 
+    /// <summary>
+    /// The main application window. Displays a monthly calendar and allows
+    /// the user to add, view, and delete events.
+    /// </summary>
     class CalendarApp : Window
     {
         DateTime currentMonth = DateTime.Today;
@@ -47,6 +73,9 @@ namespace SimpleCalendarGtk
         List<CalendarEvent> eventsList = new List<CalendarEvent>();
         string fileName = "events.txt";
 
+        /// <summary>
+        /// Initializes the calendar window, loads saved events, and builds the UI.
+        /// </summary>
         public CalendarApp() : base("Mini Calendar")
         {
             SetDefaultSize(850, 600);
@@ -71,6 +100,9 @@ namespace SimpleCalendarGtk
             ShowAll();
         }
 
+        /// <summary>
+        /// Creates the top navigation bar with previous, next, and today buttons.
+        /// </summary>
         HBox CreateHeader()
         {
             HBox box = new HBox(false, 10);
@@ -100,6 +132,9 @@ namespace SimpleCalendarGtk
             return box;
         }
 
+        /// <summary>
+        /// Creates the left panel containing the monthly calendar grid.
+        /// </summary>
         VBox CreateCalendarPart()
         {
             VBox box = new VBox(false, 8);
@@ -117,6 +152,9 @@ namespace SimpleCalendarGtk
             return box;
         }
 
+        /// <summary>
+        /// Creates the right panel with the event list and form for adding new events.
+        /// </summary>
         VBox CreateEventPart()
         {
             VBox box = new VBox(false, 8);
@@ -176,6 +214,9 @@ namespace SimpleCalendarGtk
             return box;
         }
 
+        /// <summary>
+        /// Redraws the calendar grid for the current month.
+        /// </summary>
         void DrawCalendar()
         {
             foreach (Widget child in calendarGrid.Children) calendarGrid.Remove(child);
@@ -210,6 +251,11 @@ namespace SimpleCalendarGtk
             calendarGrid.ShowAll();
         }
 
+        /// <summary>
+        /// Creates a clickable button for a single day in the calendar grid.
+        /// Shows the day number and event count if any events exist.
+        /// </summary>
+        /// <param name="date">The date this button represents.</param>
         Button MakeDayButton(DateTime date)
         {
             VBox box = new VBox(false, 2);
@@ -239,6 +285,10 @@ namespace SimpleCalendarGtk
             return button;
         }
 
+        /// <summary>
+        /// Returns the grid column index (0 = Monday, 6 = Sunday) for a given date.
+        /// </summary>
+        /// <param name="date">The date to check.</param>
         int GetColumn(DateTime date)
         {
             int day = (int)date.DayOfWeek;
@@ -246,6 +296,9 @@ namespace SimpleCalendarGtk
             return day - 1;
         }
 
+        /// <summary>
+        /// Refreshes the event list panel to show events for the selected date.
+        /// </summary>
         void RefreshEvents()
         {
             foreach (Widget child in eventList.Children) eventList.Remove(child);
@@ -269,6 +322,10 @@ namespace SimpleCalendarGtk
             eventList.ShowAll();
         }
 
+        /// <summary>
+        /// Creates a list row widget displaying the details of a single event.
+        /// </summary>
+        /// <param name="ev">The event to display.</param>
         ListBoxRow MakeEventRow(CalendarEvent ev)
         {
             ListBoxRow row = new ListBoxRow();
@@ -297,6 +354,10 @@ namespace SimpleCalendarGtk
             return row;
         }
 
+        /// <summary>
+        /// Handles the Add Event button click. Validates input, creates a new event,
+        /// and saves it to disk.
+        /// </summary>
         void AddEvent(object sender, EventArgs e)
         {
             string title = titleEntry.Text.Trim();
@@ -324,6 +385,10 @@ namespace SimpleCalendarGtk
             RefreshEvents();
         }
 
+        /// <summary>
+        /// Handles the Delete Selected button click. Removes the selected event
+        /// from the list and saves the updated list to disk.
+        /// </summary>
         void DeleteEventFromList(object sender, EventArgs e)
         {
             ListBoxRow row = eventList.SelectedRow;
@@ -339,6 +404,10 @@ namespace SimpleCalendarGtk
             RefreshEvents();
         }
 
+        /// <summary>
+        /// Counts how many events occur on a given date.
+        /// </summary>
+        /// <param name="date">The date to check.</param>
         int CountEvents(DateTime date)
         {
             int count = 0;
@@ -347,6 +416,10 @@ namespace SimpleCalendarGtk
             return count;
         }
 
+        /// <summary>
+        /// Returns all events that occur on a given date.
+        /// </summary>
+        /// <param name="date">The date to filter by.</param>
         List<CalendarEvent> GetEvents(DateTime date)
         {
             List<CalendarEvent> result = new List<CalendarEvent>();
@@ -355,6 +428,9 @@ namespace SimpleCalendarGtk
             return result;
         }
 
+        /// <summary>
+        /// Saves all events to a text file, one event per line in pipe-delimited format.
+        /// </summary>
         void SaveEvents()
         {
             try
@@ -376,6 +452,10 @@ namespace SimpleCalendarGtk
             }
         }
 
+        /// <summary>
+        /// Loads events from the text file on disk into the events list.
+        /// Skips malformed lines and handles missing or corrupt files gracefully.
+        /// </summary>
         void LoadEvents()
         {
             try
@@ -413,22 +493,37 @@ namespace SimpleCalendarGtk
             }
         }
 
+        /// <summary>
+        /// Sanitizes a string for safe storage by removing pipe characters and newlines.
+        /// </summary>
+        /// <param name="text">The text to clean.</param>
         string Clean(string text)
         {
             return text.Replace("|", "/").Replace("\n", " ");
         }
 
+        /// <summary>
+        /// Checks whether a repeat string is one of the accepted values.
+        /// </summary>
+        /// <param name="repeat">The repeat value to validate.</param>
         bool IsValidRepeat(string repeat)
         {
             return repeat == "None" || repeat == "Daily" ||
                    repeat == "Weekly" || repeat == "Yearly";
         }
 
+        /// <summary>
+        /// Updates the selected date label to show the currently selected date.
+        /// </summary>
         void UpdateSelectedDate()
         {
             selectedDateLabel.Markup = $"<b>{selectedDate:dddd, dd MMMM yyyy}</b>";
         }
 
+        /// <summary>
+        /// Shows a modal info dialog with a message.
+        /// </summary>
+        /// <param name="text">The message to display.</param>
         void ShowMessage(string text)
         {
             MessageDialog dialog = new MessageDialog(
@@ -440,8 +535,14 @@ namespace SimpleCalendarGtk
         }
     }
 
+    /// <summary>
+    /// Entry point for the application.
+    /// </summary>
     class Program
     {
+        /// <summary>
+        /// Initializes GTK and launches the calendar window.
+        /// </summary>
         static void Main(string[] args)
         {
             Gtk.Application.Init();
